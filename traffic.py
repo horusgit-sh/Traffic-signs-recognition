@@ -63,6 +63,8 @@ def load_data(data_dir):
 
     for num in range(NUM_CATEGORIES):
         cat_path = os.path.join(data_dir, str(num))
+        if not os.path.isdir(cat_path):  # Проверяем, существует ли папка
+            raise FileNotFoundError ("No file")
         for image in os.listdir(cat_path):
             read = cv2.imread(os.path.join(cat_path, image))
             resize = cv2.resize(read, (IMG_WIDTH, IMG_HEIGHT))
@@ -74,37 +76,52 @@ def load_data(data_dir):
 
 def get_model():
     """
-    Returns a compiled convolutional neural network model. Assume that the
-    `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
-    The output layer should have `NUM_CATEGORIES` units, one for each category.
+    Returns a compiled convolutional neural network model with deeper layers
+    and better regularization. Assume that the `input_shape` of the first
+    layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`. The output layer should have
+    `NUM_CATEGORIES` units, one for each category.
     """
     model = tf.keras.models.Sequential([
 
-        # Convolutional layer. Learn 32 filters using a 3x3 kernel
-        tf.keras.layers.Conv2D(
-            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
-        ),
-
-        # Max-pooling layer, using 2x2 pool size
+        #
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), padding="same"),
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-        # Flatten units
-        tf.keras.layers.Flatten(),
 
-        # Add a hidden layer with dropout
+        tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+
+        tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+        tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+
+        tf.keras.layers.GlobalAveragePooling2D(),
+
+        # Полносвязный слой
         tf.keras.layers.Dense(128, activation="relu"),
-        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dropout(0.4),  # Более мягкий Dropout
 
-        # Add an output layer with output units for all 10 digits
-        tf.keras.layers.Dense(10, activation="softmax")
+        # Выходной слой (NUM_CATEGORIES классов)
+        tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
     ])
 
+    # Компиляция модели
     model.compile(
-        optimizer="adam",
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),  # Уменьшение скорости обучения
         loss="categorical_crossentropy",
         metrics=["accuracy"]
     )
+
     return model
+
 
 
 
