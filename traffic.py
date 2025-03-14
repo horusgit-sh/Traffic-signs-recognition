@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
 
-EPOCHS = 10
+EPOCHS = 15
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
@@ -83,33 +83,51 @@ def get_model():
     """
     model = tf.keras.models.Sequential([
 
-        #
-        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3), padding="same"),
+        # Первый сверточный блок
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        tf.keras.layers.Dropout(0.3),  # Dropout для борьбы с переобучением
 
-
+        # Второй сверточный блок
+        tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        tf.keras.layers.Dropout(0.3),
 
-
+        # Третий сверточный блок
+        tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        tf.keras.layers.Dropout(0.4),
 
-        tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
+        # Четвертый сверточный блок
+        tf.keras.layers.Conv2D(256, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(256, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        tf.keras.layers.Dropout(0.4),
 
+        # Преобразование в 1D
+        tf.keras.layers.Flatten(),
 
-        tf.keras.layers.GlobalAveragePooling2D(),
+        # Полносвязные слои
+        tf.keras.layers.Dense(512, activation="relu", kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.5),
 
-        # Полносвязный слой
-        tf.keras.layers.Dense(128, activation="relu"),
-        tf.keras.layers.Dropout(0.4),  # Более мягкий Dropout
+        tf.keras.layers.Dense(256, activation="relu", kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.5),
 
-        # Выходной слой (NUM_CATEGORIES классов)
+        # Выходной слой
         tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
     ])
 
