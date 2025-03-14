@@ -63,7 +63,7 @@ def load_data(data_dir):
 
     for num in range(NUM_CATEGORIES):
         cat_path = os.path.join(data_dir, str(num))
-        if not os.path.isdir(cat_path):  # Проверяем, существует ли папка
+        if not os.path.isdir(cat_path):
             raise FileNotFoundError ("No file")
         for image in os.listdir(cat_path):
             read = cv2.imread(os.path.join(cat_path, image))
@@ -89,7 +89,7 @@ def get_model():
         tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-        tf.keras.layers.Dropout(0.3),  # Dropout для борьбы с переобучением
+        tf.keras.layers.Dropout(0.3),
 
         # Второй сверточный блок
         tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
@@ -131,9 +131,9 @@ def get_model():
         tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
     ])
 
-    # Компиляция модели
+
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),  # Уменьшение скорости обучения
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         loss="categorical_crossentropy",
         metrics=["accuracy"]
     )
